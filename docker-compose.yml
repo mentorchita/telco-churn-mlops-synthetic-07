@@ -1,0 +1,79 @@
+services:
+  # ── Сервіс для генерації даних (як раніше)
+  generator:
+    build: .
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    command: python src/generate_dataset_ext.py --samples 50000 --conv-samples 7500
+    healthcheck:
+      test: ["CMD", "python", "-c", "print('healthy')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ── Сервіс для Jupyter (новий)
+  jupyter:
+    image: quay.io/jupyter/scipy-notebook:latest
+    # або quay.io/jupyter/datascience-notebook:latest якщо хочете більше пакетів
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - ./data:/home/jovyan/data:ro           # тільки читання, щоб не змінювали випадково
+      - ./config:/home/jovyan/config:ro
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=secret123               # змініть на свій або видаліть → отримаєте випадковий
+      - NB_USER=jovyan
+      - NB_UID=1000
+      - NB_GID=1000
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+    depends_on:
+      - mlflow
+    environment:
+      - MODEL_PATH=/app/models/churn_model.pkl
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  mlflow:
+    image: python:3.11-slim
+    container_name: mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlartifacts:/mlartifacts
+      - ./mlflow_db:/mlflow_db
+    command: >
+      /bin/sh -c "apt-get update && apt-get install -y curl && pip install --no-cache-dir mlflow && \
+      mlflow server --backend-store-uri sqlite:///mlflow_db/mlflow.db \
+        --default-artifact-root /mlartifacts --host 0.0.0.0 --port 5000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+# Додані healthchecks (приклад для generator)
+services:
+  generator:
+    healthcheck:
+      test: ["CMD", "python", "-c", "print('healthy')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3

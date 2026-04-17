@@ -1,0 +1,56 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mlops-ingress
+  namespace: mlops
+  labels:
+    app: telco-churn
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: mlops.local              # Add to /etc/hosts: $(minikube ip) mlops.local
+      http:
+        paths:
+          # ML Service: /predict, /health, /metrics
+          - path: /ml(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: churn-ml-svc
+                port:
+                  number: 80
+
+          # RAG Service: /query, /ingest, /health
+          - path: /rag(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: churn-rag-svc
+                port:
+                  number: 80
+
+          # Agent Service: /run, /health
+          - path: /agent(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: churn-agent-svc
+                port:
+                  number: 80
+
+# ──────────────────────────────────────────────────────────────
+# Local testing without Ingress (port-forward):
+#   kubectl port-forward svc/churn-ml-svc    8001:80 -n mlops &
+#   kubectl port-forward svc/churn-rag-svc   8002:80 -n mlops &
+#   kubectl port-forward svc/churn-agent-svc 8003:80 -n mlops &
+#
+# Then:
+#   curl http://localhost:8001/health
+#   curl http://localhost:8001/predict -d '{"tenure":12,...}'
+# ──────────────────────────────────────────────────────────────

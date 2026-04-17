@@ -1,0 +1,46 @@
+# config/config.yaml
+
+generation:
+  samples: 50000                  # кількість клієнтів (табличні дані)
+  conv_samples: 7500              # кількість згенерованих розмов support
+  start_date: "2023-01-01"
+  end_date: "2024-12-31"
+  output_dir: "data"
+
+drift:
+  fiber_growth_rate: 0.25
+  dsl_decline_rate: 0.20
+  no_internet_decline: 0.05
+  echeck_decline_rate: 0.25
+  m2m_decline_rate: 0.25
+  streaming_boost_factor: 0.3
+  senior_decline_rate: 0.12
+  churn_base_decline: 0.20        # головне зниження churn rate за період
+
+pricing:
+  base_charge: 20.0
+  phone_addon: 25.0
+  multiple_lines_addon: 18.0
+  dsl_addon: 50.0
+  fiber_base: 82.0
+  fiber_progress_bonus: 10.0
+  extra_service_per_item: 8.0
+  extra_service_progress_bonus: 3.0
+  one_year_discount: 0.94
+  two_year_discount: 0.88
+  two_year_progress_penalty: 0.03
+
+knowledge_base:
+  enabled: true
+  documents:
+    - id: 1
+      title: "How to reset your modem"
+      content: "1. Unplug the power cord from the modem. 2. Wait 30 seconds. 3. Plug it back in. 4. Wait for all lights to stabilize."
+    - id: 2
+      title: "Understanding your bill"
+      content: "Your monthly bill includes: base plan charge, equipment rental (if applicable), taxes, and any one-time fees. Check 'My Account' for detailed breakdown."
+    # ... можна додати інші 6 документів сюди, або залишити код генерувати їх
+
+logging:
+  verbose: true
+  show_churn_stats: true

@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: churn-agent-service
+  namespace: mlops
+  labels:
+    app: churn-agent
+    component: orchestration
+    version: "1.0.0"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: churn-agent
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: churn-agent
+        component: orchestration
+        version: "1.0.0"
+    spec:
+      containers:
+        - name: churn-agent
+          image: churn-agent:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8002
+              protocol: TCP
+          env:
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: agent-config
+                  key: LOG_LEVEL
+            - name: ML_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: agent-config
+                  key: ML_SERVICE_URL
+            - name: RAG_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: agent-config
+                  key: RAG_SERVICE_URL
+            - name: MAX_ITERATIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: agent-config
+                  key: MAX_ITERATIONS
+            - name: TEMPERATURE
+              valueFrom:
+                configMapKeyRef:
+                  name: agent-config
+                  key: TEMPERATURE
+            - name: LLM_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: agent-config
+                  key: LLM_MODEL
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: llm-secrets
+                  key: openai_api_key
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 3
+      terminationGracePeriodSeconds: 30

@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: churn-rag-service
+  namespace: mlops
+  labels:
+    app: churn-rag
+    component: retrieval
+    version: "1.0.0"
+spec:
+  replicas: 1                          # Stateful — keep at 1 or use StatefulSet
+  selector:
+    matchLabels:
+      app: churn-rag
+  strategy:
+    type: Recreate                     # Recreate because of ReadWriteOnce PVC
+  template:
+    metadata:
+      labels:
+        app: churn-rag
+        component: retrieval
+        version: "1.0.0"
+    spec:
+      containers:
+        - name: churn-rag
+          image: churn-rag:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8001
+              protocol: TCP
+          env:
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: rag-config
+                  key: LOG_LEVEL
+            - name: CHROMA_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: rag-config
+                  key: CHROMA_PATH
+            - name: COLLECTION_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: rag-config
+                  key: COLLECTION_NAME
+            - name: EMBEDDING_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: rag-config
+                  key: EMBEDDING_MODEL
+            - name: TOP_K_RESULTS
+              valueFrom:
+                configMapKeyRef:
+                  name: rag-config
+                  key: TOP_K_RESULTS
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: llm-secrets
+                  key: openai_api_key
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "1000m"
+              memory: "2Gi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 3
+          volumeMounts:
+            - name: rag-storage
+              mountPath: /data
+      volumes:
+        - name: rag-storage
+          persistentVolumeClaim:
+            claimName: rag-pvc
+      terminationGracePeriodSeconds: 60

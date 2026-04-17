@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: churn-agent-svc
+  namespace: mlops
+  labels:
+    app: churn-agent
+    component: orchestration
+spec:
+  selector:
+    app: churn-agent
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8002
+  type: ClusterIP

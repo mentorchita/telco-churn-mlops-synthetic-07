@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: churn-rag-svc
+  namespace: mlops
+  labels:
+    app: churn-rag
+    component: retrieval
+spec:
+  selector:
+    app: churn-rag
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8001
+  type: ClusterIP

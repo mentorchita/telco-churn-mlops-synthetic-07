@@ -1,0 +1,78 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: mlops-dev
+
+resources:
+  - ../../base
+
+# Override namespace for dev
+patches:
+  # ML Service: 1 replica in dev, lower limits
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+    target:
+      kind: Deployment
+      name: churn-ml-service
+
+  - patch: |-
+      - op: replace
+        path: /spec/resources/requests/cpu
+        value: "100m"
+      - op: replace
+        path: /spec/resources/requests/memory
+        value: "128Mi"
+    target:
+      kind: Deployment
+      name: churn-ml-service
+
+  # HPA: tighter range in dev
+  - patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 1
+      - op: replace
+        path: /spec/maxReplicas
+        value: 3
+    target:
+      kind: HorizontalPodAutoscaler
+      name: churn-ml-hpa
+
+  # Ingress: dev hostname
+  - patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: mlops-dev.local
+    target:
+      kind: Ingress
+      name: mlops-ingress
+
+# Use :dev image tags
+images:
+  - name: churn-predictor
+    newTag: dev
+  - name: churn-rag
+    newTag: dev
+  - name: churn-agent
+    newTag: dev
+
+# Override config values for dev
+configMapGenerator:
+  - name: ml-config
+    behavior: merge
+    literals:
+      - LOG_LEVEL=DEBUG
+      - APP_ENV=development
+  - name: rag-config
+    behavior: merge
+    literals:
+      - LOG_LEVEL=DEBUG
+      - APP_ENV=development
+  - name: agent-config
+    behavior: merge
+    literals:
+      - LOG_LEVEL=DEBUG
+      - APP_ENV=development
+      - MAX_ITERATIONS=3

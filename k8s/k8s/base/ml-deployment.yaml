@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: churn-ml-service
+  namespace: mlops
+  labels:
+    app: churn-ml
+    component: inference
+    version: "1.0.0"
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: churn-ml
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: churn-ml
+        component: inference
+        version: "1.0.0"
+    spec:
+      containers:
+        - name: churn-ml
+          image: churn-predictor:latest
+          imagePullPolicy: IfNotPresent        # Use local image in minikube
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: MODEL_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: ml-config
+                  key: MODEL_PATH
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: ml-config
+                  key: LOG_LEVEL
+            - name: PREDICTION_THRESHOLD
+              valueFrom:
+                configMapKeyRef:
+                  name: ml-config
+                  key: PREDICTION_THRESHOLD
+            - name: MODEL_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: ml-config
+                  key: MODEL_VERSION
+            - name: MLFLOW_TRACKING_URI
+              valueFrom:
+                secretKeyRef:
+                  name: llm-secrets
+                  key: mlflow_tracking_uri
+                  optional: true
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 3
+          volumeMounts:
+            - name: model-storage
+              mountPath: /models
+              readOnly: true
+      volumes:
+        - name: model-storage
+          emptyDir: {}             # Replace with PVC or hostPath for real models
+      terminationGracePeriodSeconds: 30

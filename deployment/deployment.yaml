@@ -1,0 +1,5 @@
+# Kubernetes manifest placeholder
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: churn-predictor

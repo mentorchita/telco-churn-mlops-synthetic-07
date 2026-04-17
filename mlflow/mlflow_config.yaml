@@ -1,0 +1,13 @@
+
+# Example MLflow configuration.
+# You can also set these via environment variables used by pipelines/train.py:
+# - MLFLOW_TRACKING_URI
+# - MLFLOW_EXPERIMENT
+# - MLFLOW_REGISTER_MODEL (true/false)
+# - MLFLOW_REGISTERED_NAME
+
+tracking_uri: http://localhost:5000
+experiment: telco_churn_experiment
+register_model: false
+registered_name: ChurnModel
+

@@ -1,0 +1,51 @@
+---
+# ConfigMap for ML inference service
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ml-config
+  namespace: mlops
+  labels:
+    app: churn-ml
+data:
+  LOG_LEVEL: "INFO"
+  MODEL_PATH: "/models/churn_model.pkl"
+  FEATURE_COLUMNS: "tenure,monthly_charges,total_charges,contract_type,internet_service,payment_method"
+  PREDICTION_THRESHOLD: "0.5"
+  MODEL_VERSION: "1.0.0"
+  APP_ENV: "production"
+
+---
+# ConfigMap for RAG service
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rag-config
+  namespace: mlops
+  labels:
+    app: churn-rag
+data:
+  LOG_LEVEL: "INFO"
+  CHROMA_PATH: "/data/chroma"
+  COLLECTION_NAME: "telco_churn_docs"
+  EMBEDDING_MODEL: "text-embedding-3-small"
+  TOP_K_RESULTS: "5"
+  APP_ENV: "production"
+
+---
+# ConfigMap for Agent service
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agent-config
+  namespace: mlops
+  labels:
+    app: churn-agent
+data:
+  LOG_LEVEL: "INFO"
+  ML_SERVICE_URL: "http://churn-ml-svc:80"
+  RAG_SERVICE_URL: "http://churn-rag-svc:80"
+  MAX_ITERATIONS: "5"
+  TEMPERATURE: "0.2"
+  LLM_MODEL: "gpt-4o-mini"
+  APP_ENV: "production"

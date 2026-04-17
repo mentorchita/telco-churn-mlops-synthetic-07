@@ -1,0 +1,73 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: mlops
+
+resources:
+  - ../../base
+
+patches:
+  # ML Service: 3 replicas in prod, higher limits
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+    target:
+      kind: Deployment
+      name: churn-ml-service
+
+  # HPA: wider range in prod
+  - patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 3
+      - op: replace
+        path: /spec/maxReplicas
+        value: 20
+    target:
+      kind: HorizontalPodAutoscaler
+      name: churn-ml-hpa
+
+  # RAG: 2Gi storage in prod
+  - patch: |-
+      - op: replace
+        path: /spec/resources/requests/storage
+        value: 20Gi
+    target:
+      kind: PersistentVolumeClaim
+      name: rag-pvc
+
+  # Ingress: prod hostname + TLS
+  - patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: mlops.yourdomain.com
+    target:
+      kind: Ingress
+      name: mlops-ingress
+
+# Pin image tags for prod
+images:
+  - name: churn-predictor
+    newName: your-registry/churn-predictor
+    newTag: "1.0.3"
+  - name: churn-rag
+    newName: your-registry/churn-rag
+    newTag: "1.0.3"
+  - name: churn-agent
+    newName: your-registry/churn-agent
+    newTag: "1.0.3"
+
+configMapGenerator:
+  - name: ml-config
+    behavior: merge
+    literals:
+      - LOG_LEVEL=WARNING
+      - APP_ENV=production
+      - MODEL_VERSION=1.0.3
+  - name: agent-config
+    behavior: merge
+    literals:
+      - LOG_LEVEL=WARNING
+      - APP_ENV=production
+      - MAX_ITERATIONS=5

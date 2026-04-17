@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "title": "How to reset your modem",
+    "content": "1. Unplug the power cord from the modem. 2. Wait 30 seconds. 3. Plug it back in. 4. Wait for all lights to stabilize."
+  },
+  {
+    "id": 2,
+    "title": "Understanding your bill",
+    "content": "Your monthly bill includes: base plan charge, equipment rental (if applicable), taxes, and any one-time fees. Check 'My Account' for detailed breakdown."
+  },
+  {
+    "id": 3,
+    "title": "Upgrading to Fiber optic",
+    "content": "Fiber offers speeds up to 1 Gbps. Availability depends on your address. Contact support or check online to see if eligible."
+  },
+  {
+    "id": 4,
+    "title": "How to change payment method",
+    "content": "Log in → My Account → Billing & Payments → Update Payment Method. We accept credit/debit cards, bank transfer, and electronic check."
+  },
+  {
+    "id": 5,
+    "title": "Troubleshooting slow internet",
+    "content": "1. Restart modem/router. 2. Connect via Ethernet to test. 3. Check for background downloads. 4. Contact us if issue persists."
+  },
+  {
+    "id": 6,
+    "title": "Contract terms and cancellation",
+    "content": "Month-to-month: cancel anytime. One/Two year: early termination fee may apply. 30-day notice required."
+  },
+  {
+    "id": 7,
+    "title": "Adding streaming services",
+    "content": "You can add HBO, Netflix bundle, etc. in My Services. Some plans include free streaming options."
+  },
+  {
+    "id": 8,
+    "title": "Technical support hours",
+    "content": "24/7 phone support. Chat available Mon–Fri 8 AM – 10 PM, weekends 9 AM – 8 PM."
+  }
+]
