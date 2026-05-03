@@ -68,12 +68,3 @@ services:
       timeout: 5s
       retries: 5
 
-
-# Додані healthchecks (приклад для generator)
-services:
-  generator:
-    healthcheck:
-      test: ["CMD", "python", "-c", "print('healthy')"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
